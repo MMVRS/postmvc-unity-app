@@ -23,6 +23,8 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
         bool CheckBundleLoadedOrLoading(string identifier);
         bool CheckBundleLoadedOrLoading(AssetBundleInfo info);
 
+        void CollectLoadedBundleIds(System.Collections.Generic.List<string> output);
+
         /*
          * Embed.
          */
@@ -97,6 +99,8 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
         T GetAsset<T>(Enum identifier, string assetName) where T : UnityEngine.Object;
         T GetAsset<T>(string identifier, string assetName) where T : UnityEngine.Object;
         T GetAsset<T>(AssetBundleInfo bundleInfo, string assetName) where T : UnityEngine.Object;
+
+        UnityEngine.AssetBundleRequest LoadAssetAsync<T>(AssetBundleInfo bundleInfo, string assetName) where T : UnityEngine.Object;
 
         bool TryGetAsset<T>(Enum identifier, string assetName, out T asset) where T : UnityEngine.Object;
         bool TryGetAsset<T>(string identifier, string assetName, out T asset) where T : UnityEngine.Object;

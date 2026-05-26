@@ -21,7 +21,7 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl.Agents
             else if (!info.IsRemoteBundle)
                 throw new AssetsException(AssetsExceptionType.UnknownBundleType);
 
-            StartCoroutine(LoadRemoteAssetBundleCoroutine(info, null, null, null, null, onProgress, onComplete, onError));
+            StartCoroutine(LoadRemoteAssetBundleCoroutine(info, null, (_, __) => { }, null, null, onProgress, onComplete, onError));
         }
     }
 }

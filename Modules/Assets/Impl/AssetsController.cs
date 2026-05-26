@@ -8,6 +8,9 @@ using Build1.PostMVC.Unity.App.Modules.Assets.Impl.Cache;
 using Build1.PostMVC.Unity.App.Modules.Logging;
 using UnityEngine;
 using UnityEngine.U2D;
+#if UNITY_EDITOR
+using System.Text;
+#endif
 
 namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
 {
@@ -40,6 +43,10 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
         private AssetBundlesCacheController _cacheController;
         private bool                        _destroying;
         private bool                        _destroyed;
+
+#if UNITY_EDITOR
+        private readonly List<string> _editorLoadedBundleIdsBuffer = new(8);
+#endif
 
         [PostConstruct]
         public void PostConstruct()
@@ -138,6 +145,14 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
             return _bundles.TryGetValue(info.BundleId, out var infoInner) && (infoInner.IsLoaded || infoInner.IsLoading);
         }
 
+        public void CollectLoadedBundleIds(List<string> output)
+        {
+            output.Clear();
+
+            for (var i = 0; i < _bundlesLoaded.Count; i++)
+                output.Add(_bundlesLoaded[i].BundleId);
+        }
+
         /*
          * Embed.
          */
@@ -223,6 +238,10 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
             if (info.IsLoaded)
                 throw new AssetsException(AssetsExceptionType.BundleAlreadyLoaded, info.BundleId);
 
+#if UNITY_EDITOR
+            LogEditorBundleLoadRequested(info);
+#endif
+
             Dispatcher.Dispatch(AssetsEvent.BundleLoadingStart, info);
 
             _agent.LoadAsync(info,
@@ -274,6 +293,10 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
 
                                  SetBundleLoaded(bundleInfo, unityBundle);
 
+#if UNITY_EDITOR
+                                 LogEditorBundleLoaded(bundleInfo);
+#endif
+
                                  onComplete?.Invoke(bundleInfo);
                                  Dispatcher?.Dispatch(AssetsEvent.BundleLoadingSuccess, bundleInfo);
                              },
@@ -283,6 +306,10 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
                                      return;
 
                                  Log?.Error(exception);
+
+#if UNITY_EDITOR
+                                 LogEditorBundleLoadFailed(bundleInfo, exception);
+#endif
 
                                  SetBundleUnloaded(bundleInfo);
 
@@ -354,8 +381,16 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
             if (!bundleInfo.IsLoaded)
                 throw new AssetsException(AssetsExceptionType.BundleNotLoaded, bundleInfo.BundleId);
 
+#if UNITY_EDITOR
+            var editorReason = bundleInfo.EditorDebugReason;
+#endif
+
             bundleInfo.Bundle.Unload(unloadObjects);
             SetBundleUnloaded(bundleInfo);
+
+#if UNITY_EDITOR
+            LogEditorBundleUnloaded(bundleInfo.BundleId, unloadObjects, editorReason);
+#endif
 
             Log.Debug(n => $"Bundle unloaded: {n}", bundleInfo.BundleId);
         }
@@ -437,6 +472,14 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
                 throw new AssetsException(AssetsExceptionType.AssetNotFound, $"Asset: \"{assetName}\" Bundle: \"{info.BundleId}\"");
 
             return asset;
+        }
+
+        public AssetBundleRequest LoadAssetAsync<T>(AssetBundleInfo info, string assetName) where T : UnityEngine.Object
+        {
+            if (!info.IsLoaded)
+                throw new AssetsException(AssetsExceptionType.BundleNotLoaded, $"Bundle: \"{info.BundleId}\" Asset: \"{assetName}\"");
+
+            return info.Bundle.LoadAssetAsync(assetName, typeof(T));
         }
 
         public bool TryGetAsset<T>(Enum identifier, string assetName, out T asset) where T : UnityEngine.Object
@@ -650,6 +693,59 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
             foreach (var atlasesName in info.AtlasesNames)
                 _bundleByAtlasId.Remove(atlasesName);
         }
+
+#if UNITY_EDITOR
+        private void LogEditorBundleLoadRequested(AssetBundleInfo info)
+        {
+            Log.Warn(i => $"Asset bundle trace. Load requested for \"{i.BundleId}\". Reason: {FormatEditorReason(i.EditorDebugReason)}. Loaded: {FormatEditorLoadedBundles()}.", info);
+        }
+
+        private void LogEditorBundleLoaded(AssetBundleInfo info)
+        {
+            Log.Warn(i => $"Asset bundle trace. Loaded \"{i.BundleId}\". Reason: {FormatEditorReason(i.EditorDebugReason)}. Loaded: {FormatEditorLoadedBundles()}.", info);
+        }
+
+        private void LogEditorBundleLoadFailed(AssetBundleInfo info, Exception exception)
+        {
+            Log.Warn((i, e) => $"Asset bundle trace. Failed to load \"{i.BundleId}\". Reason: {FormatEditorReason(i.EditorDebugReason)}. Error: {e.Message}. Loaded: {FormatEditorLoadedBundles()}.", info, exception);
+        }
+
+        private void LogEditorBundleUnloaded(string bundleId, bool unloadObjects, string reason)
+        {
+            Log.Warn((id, objects, value) => $"Asset bundle trace. Unloaded \"{id}\" (unloadObjects={objects}). Reason: {FormatEditorReason(value)}. Loaded: {FormatEditorLoadedBundles()}.", bundleId, unloadObjects, reason);
+        }
+
+        private string FormatEditorLoadedBundles()
+        {
+            CollectLoadedBundleIds(_editorLoadedBundleIdsBuffer);
+            return FormatEditorBundleIds(_editorLoadedBundleIdsBuffer);
+        }
+
+        private static string FormatEditorReason(string reason)
+        {
+            return string.IsNullOrEmpty(reason) ? "unspecified" : reason;
+        }
+
+        private static string FormatEditorBundleIds(List<string> bundleIds)
+        {
+            if (bundleIds.Count == 0)
+                return "[none]";
+
+            var builder = new StringBuilder();
+            builder.Append('[');
+
+            for (var i = 0; i < bundleIds.Count; i++)
+            {
+                if (i > 0)
+                    builder.Append(", ");
+
+                builder.Append(bundleIds[i]);
+            }
+
+            builder.Append(']');
+            return builder.ToString();
+        }
+#endif
 
         /*
          * Event handlers.

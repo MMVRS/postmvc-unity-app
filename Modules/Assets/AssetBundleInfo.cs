@@ -23,6 +23,10 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
         public bool IsCacheReset       { get; private set; }
         public bool IsLoadingFromCache { get; private set; }
 
+#if UNITY_EDITOR
+        public string EditorDebugReason { get; private set; }
+#endif
+
         internal bool HasAtlases     => AtlasesNames != null && AtlasesNames.Count > 0;
         internal bool IsCacheEnabled { get; private set; }
 
@@ -43,6 +47,14 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
 
             return this;
         }
+
+#if UNITY_EDITOR
+        public AssetBundleInfo SetEditorDebugReason(string reason)
+        {
+            EditorDebugReason = reason;
+            return this;
+        }
+#endif
 
         internal void OverrideBundleUrl(string url)
         {
@@ -77,6 +89,9 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
             IsLoading = false;
             IsAborted = false;
             Bundle = null;
+#if UNITY_EDITOR
+            EditorDebugReason = null;
+#endif
         }
 
         internal void SetCacheReset()
@@ -115,6 +130,9 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
             IsCacheEnabled = info.IsCacheEnabled;
             IsCacheReset = info.IsCacheReset;
             IsLoadingFromCache = info.IsLoadingFromCache;
+#if UNITY_EDITOR
+            EditorDebugReason = info.EditorDebugReason;
+#endif
         }
 
         public string[] GetAllScenePaths() { return Bundle.GetAllScenePaths(); }
