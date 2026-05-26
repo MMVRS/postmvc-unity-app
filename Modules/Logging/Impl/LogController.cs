@@ -74,6 +74,17 @@ namespace Build1.PostMVC.Unity.App.Modules.Logging.Impl
             }
         }
 
+        public void ClearLogs()
+        {
+            lock (_records)
+            {
+                _records.Clear();
+                _recordsCount = 0;
+            }
+
+            DeleteLogFiles();
+        }
+
         public List<LogFile> GetLogFiles()
         {
             var folderPath = Path.Combine(PathUtil.GetPersistentDataPath(), "Logs");

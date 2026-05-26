@@ -8,6 +8,7 @@ namespace Build1.PostMVC.Unity.App.Modules.Logging
 
         string GetLog();
         void   FlushLog();
+        void   ClearLogs();
 
         List<LogFile> GetLogFiles();
         LogFile       GetLastLogFile();
