@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Build1.PostMVC.Unity.App.Modules.UI.Popups
 {
-    public abstract class PopupView : UnityView, IPopupView
+    public abstract class PopupView : UnityView, IPopupViewCanvas
     {
         [SerializeField, Header("Parts Base")] private GameObject     overlay;
         [SerializeField]                       private RectTransform  content;

@@ -19,23 +19,34 @@ namespace Build1.PostMVC.Unity.App.Modules.UI.Popups.Animation
 
         public override void AnimateShow(IPopupView view, Action onComplete)
         {
-            view.Content.localScale = new Vector3(showScaleFrom, showScaleFrom, showScaleFrom);
-            view.Content.DOScale(showScaleTo, showDuration)
+            var canvasView = GetCanvasView(view);
+            canvasView.Content.localScale = new Vector3(showScaleFrom, showScaleFrom, showScaleFrom);
+            canvasView.Content.DOScale(showScaleTo, showDuration)
                 .OnComplete(onComplete.Invoke)
                 .SetEase(showEasing);
         }
 
         public override void AnimateHide(IPopupView view, Action onComplete)
         {
-            view.Content.localScale = new Vector3(hideScaleFrom, hideScaleFrom, hideScaleFrom);
-            view.Content.DOScale(hideScaleTo, hideDuration)
+            var canvasView = GetCanvasView(view);
+            canvasView.Content.localScale = new Vector3(hideScaleFrom, hideScaleFrom, hideScaleFrom);
+            canvasView.Content.DOScale(hideScaleTo, hideDuration)
                 .SetEase(hideEasing)
                 .OnComplete(onComplete.Invoke);
         }
 
         public override void KillAnimations(IPopupView view)
         {
-            view.Content.DOKill(true);
+            GetCanvasView(view).Content.DOKill(true);
+        }
+
+        private IPopupViewCanvas GetCanvasView(IPopupView view)
+        {
+            if (view is IPopupViewCanvas canvasView)
+                return canvasView;
+
+            var viewType = view?.GetType().Name ?? "null";
+            throw new InvalidOperationException($"{nameof(PopupAnimationScale)} requires {nameof(IPopupViewCanvas)} but received {viewType}.");
         }
     }
 }

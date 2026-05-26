@@ -8,9 +8,26 @@ namespace Build1.PostMVC.Unity.App.Modules.UI.Screens
 {
     public sealed class ScreenConfig : UIControlConfiguration
     {
-        public ScreenConfig(string asset, int layerId) : base(asset, layerId) { }
-        public ScreenConfig(string asset, int layerId, Enum assetBundleId) : base(asset, layerId, assetBundleId) { }
-        public ScreenConfig(string asset, int layerId, AssetBundleInfo assetBundleInfo) : base(asset, layerId, assetBundleInfo) { }
+        public readonly ScreenSurfaceKind surfaceKind;
+
+        public ScreenConfig(string asset, int layerId) : this(asset, layerId, ScreenSurfaceKind.UGUI) { }
+        public ScreenConfig(string asset, int layerId, Enum assetBundleId) : this(asset, layerId, assetBundleId, ScreenSurfaceKind.UGUI) { }
+        public ScreenConfig(string asset, int layerId, AssetBundleInfo assetBundleInfo) : this(asset, layerId, assetBundleInfo, ScreenSurfaceKind.UGUI) { }
+
+        public ScreenConfig(string asset, int layerId, ScreenSurfaceKind surfaceKind) : base(asset, layerId)
+        {
+            this.surfaceKind = surfaceKind;
+        }
+
+        public ScreenConfig(string asset, int layerId, Enum assetBundleId, ScreenSurfaceKind surfaceKind) : base(asset, layerId, assetBundleId)
+        {
+            this.surfaceKind = surfaceKind;
+        }
+
+        public ScreenConfig(string asset, int layerId, AssetBundleInfo assetBundleInfo, ScreenSurfaceKind surfaceKind) : base(asset, layerId, assetBundleInfo)
+        {
+            this.surfaceKind = surfaceKind;
+        }
 
         /*
          * Platform.

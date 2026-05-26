@@ -8,9 +8,6 @@ namespace Build1.PostMVC.Unity.App.Modules.UI.Popups
         PopupBase  Popup      { get; }
         GameObject GameObject { get; }
 
-        GameObject    Overlay { get; }
-        RectTransform Content { get; }
-
         void Close();
         void Close(bool immediately);
         void CloseImmediately();

@@ -6,7 +6,7 @@ using Event = Build1.PostMVC.Core.MVCS.Events.Event;
 
 namespace Build1.PostMVC.Unity.App.Modules.UI.Popups
 {
-    public abstract class PopupViewDispatcher : UnityViewDispatcher, IPopupView
+    public abstract class PopupViewDispatcher : UnityViewDispatcher, IPopupViewCanvas
     {
         public static readonly Event OnShown  = new(typeof(PopupViewDispatcher), nameof(OnShown));
         public static readonly Event OnHidden = new(typeof(PopupViewDispatcher), nameof(OnHidden));
