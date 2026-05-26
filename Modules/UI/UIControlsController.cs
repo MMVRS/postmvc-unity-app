@@ -58,6 +58,11 @@ namespace Build1.PostMVC.Unity.App.Modules.UI
 
         protected GameObject GetInstance(T control, UIControlOptions options, out bool isNewInstance)
         {
+            return GetInstance(control, options, null, out isNewInstance);
+        }
+
+        protected GameObject GetInstance(T control, UIControlOptions options, Transform parent, out bool isNewInstance)
+        {
             isNewInstance = false;
             if (control == null)
                 return null;
@@ -68,12 +73,18 @@ namespace Build1.PostMVC.Unity.App.Modules.UI
 
             var activate = (options & UIControlOptions.Activate) == UIControlOptions.Activate;
             var layer = UILayerController.GetLayerView<Transform>(configuration.appLayerId);
+            parent ??= layer;
 
             if (control.IsSingleInstance)
             {
-                var instanceTransform = layer.Find(control.name);
+                var instanceTransform = parent.Find(control.name);
+                if (!instanceTransform && parent != layer)
+                    instanceTransform = layer.Find(control.name);
                 if (instanceTransform)
                 {
+                    if (instanceTransform.parent != parent)
+                        instanceTransform.SetParent(parent, false);
+
                     if (activate)
                         instanceTransform.gameObject.SetActive(true);
                     return instanceTransform.gameObject;
@@ -85,7 +96,7 @@ namespace Build1.PostMVC.Unity.App.Modules.UI
                 return null;
 
             isNewInstance = true;
-            return Instantiate(control, configuration, layer, activate);
+            return Instantiate(control, configuration, parent, activate);
         }
 
         protected GameObject FindInstance(T control)

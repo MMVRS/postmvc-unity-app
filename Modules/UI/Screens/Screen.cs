@@ -9,6 +9,10 @@ namespace Build1.PostMVC.Unity.App.Modules.UI.Screens
         public Screen(string name, UIBehavior behavior) : base(name, behavior)
         {
         }
+
+        public Screen(string name, UIBehavior behavior, ScreenPrepareMode prepareMode) : base(name, behavior, prepareMode)
+        {
+        }
     }
     
     public sealed class Screen<T> : ScreenBase
@@ -18,6 +22,10 @@ namespace Build1.PostMVC.Unity.App.Modules.UI.Screens
         }
         
         public Screen(string name, UIBehavior behavior) : base(name, behavior, typeof(T))
+        {
+        }
+
+        public Screen(string name, UIBehavior behavior, ScreenPrepareMode prepareMode) : base(name, behavior, typeof(T), prepareMode)
         {
         }
     }
