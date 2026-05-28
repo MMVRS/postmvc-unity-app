@@ -2,6 +2,7 @@
     "name": "PostMVCUnityApp",
     "rootNamespace": "",
     "references": [
+        "AssetBundleManifestModel",
         "PostMVC",
         "Unity.InputSystem"
     ],
