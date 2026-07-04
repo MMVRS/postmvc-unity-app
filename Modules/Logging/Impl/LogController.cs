@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using Build1.PostMVC.Core.MVCS.Injection;
 using Build1.PostMVC.Unity.App.Utils.Path;
@@ -14,6 +17,11 @@ namespace Build1.PostMVC.Unity.App.Modules.Logging.Impl
         private readonly StringBuilder _records = new();
         private          int           _recordsCount;
         private readonly DateTime      _recordsDate = DateTime.UtcNow;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal", EntryPoint = "LogSyncPersistentDataPath")]
+        private static extern void SyncPersistentDataPath();
+#endif
 
         [PostConstruct]
         public void PostConstruct()
@@ -67,10 +75,13 @@ namespace Build1.PostMVC.Unity.App.Modules.Logging.Impl
 
                 if (newFileCreated)
                     DeleteOldFiles();
+
+                SyncPersistentDataPathIfNeeded();
             }
             else if (Logging.RecordsHistory == 0)
             {
                 DeleteOldFiles();
+                SyncPersistentDataPathIfNeeded();
             }
         }
 
@@ -127,6 +138,8 @@ namespace Build1.PostMVC.Unity.App.Modules.Logging.Impl
 
             foreach (var dir in directory.GetDirectories())
                 dir.Delete(true);
+
+            SyncPersistentDataPathIfNeeded();
         }
 
         /*
@@ -179,6 +192,13 @@ namespace Build1.PostMVC.Unity.App.Modules.Logging.Impl
 
             for (var i = Logging.RecordsHistory; i < files.Length; i++)
                 files.ElementAt(i).Delete();
+        }
+
+        private void SyncPersistentDataPathIfNeeded()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            SyncPersistentDataPath();
+#endif
         }
 
         /*
