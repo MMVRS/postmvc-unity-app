@@ -215,10 +215,11 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
 
         public void LoadBundle(AssetBundleInfo info, Action<AssetBundleInfo> onComplete, Action<AssetsException> onError)
         {
-            Log.Debug(i => $"Load bundle: {i}", info);
-
             if (_bundles.TryGetValue(info.BundleId, out var infoAdded))
             {
+                if (infoAdded.IsLoading)
+                    throw new AssetsException(AssetsExceptionType.BundleAlreadyLoading, info.BundleId);
+
                 if (info != infoAdded)
                 {
                     Log.Warn(i => $"Bundle with the same id already added. Replacing added info and updating it. BundleId: {i}", info.BundleId);
@@ -230,6 +231,9 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
             }
             else
             {
+                if (info.IsLoading)
+                    throw new AssetsException(AssetsExceptionType.BundleAlreadyLoading, info.BundleId);
+
                 Log.Debug(i => $"Bundle info registered. BundleId: {i}", info.BundleId);
 
                 _bundles.Add(info.BundleId, info);
@@ -237,6 +241,9 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
 
             if (info.IsLoaded)
                 throw new AssetsException(AssetsExceptionType.BundleAlreadyLoaded, info.BundleId);
+
+            Log.Debug(i => $"Load bundle: {i}", info);
+            info.SetLoading();
 
 #if UNITY_EDITOR
             LogEditorBundleLoadRequested(info);
@@ -316,8 +323,6 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Impl
                                  onError?.Invoke(exception);
                                  Dispatcher?.Dispatch(AssetsEvent.BundleLoadingFail, bundleInfo, exception);
                              });
-
-            info.SetLoading();
         }
 
         /*

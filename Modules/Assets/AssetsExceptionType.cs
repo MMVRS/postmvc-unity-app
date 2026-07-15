@@ -16,6 +16,7 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets
         BundleAlreadyLoaded          = 25,
         BundleNotLoaded              = 26,
         BundleLoadingAborted         = 27,
+        BundleAlreadyLoading         = 28,
 
         AssetNotFound = 30,
 

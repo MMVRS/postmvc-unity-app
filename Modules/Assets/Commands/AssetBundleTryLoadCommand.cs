@@ -10,7 +10,7 @@ namespace Build1.PostMVC.Unity.App.Modules.Assets.Commands
 
         public override void Execute(AssetBundleInfo info)
         {
-            if (AssetsController.CheckBundleLoaded(info))
+            if (AssetsController.CheckBundleLoadedOrLoading(info))
                 return;
 
             Retain();
